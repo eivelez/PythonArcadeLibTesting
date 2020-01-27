@@ -37,6 +37,20 @@ class Player(arcade.Sprite):
 class Monster(arcade.Sprite):
     def __init__(self):
         super().__init__()
+        self.waiter=500
+    def update(self):
+        self.waiter+=-1
+        if self.waiter<=0:
+            aux=random.randint(0,3)
+            if aux==0:
+                self.posx+=1
+            if aux==1:
+                self.posx+=-1
+            if aux==2:
+                self.posy+=1
+            if aux==3:
+                self.posy+=-1
+            self.waiter=500
 class MapObject(arcade.Sprite):
     def __init__(self):
         super().__init__()
@@ -57,6 +71,7 @@ class MyGame(arcade.Window):
         self.all_sprites_list = None
         self.all_map=None
         self.all_monsters=None
+        self.all_visible_monsters=None
         arcade.set_background_color(arcade.color.BLACK)
 
     def setup(self):
@@ -64,6 +79,7 @@ class MyGame(arcade.Window):
         self.playerypos=initialposy
         self.all_sprites_list = arcade.SpriteList()
         self.all_map=arcade.SpriteList()
+        self.all_visible_monsters=arcade.SpriteList()
         self.all_monsters=arcade.SpriteList()
         self.player=Player()
         self.player.center_x=SCREEN_WIDTH/2
@@ -71,6 +87,17 @@ class MyGame(arcade.Window):
         self.all_sprites_list.append(self.player)
         self.block=0
         self.ctrlLock=0
+        for i in range(mapWidth):
+            for j in range(mapHeight):
+                aux=monsters.iloc[j,i]
+                if aux>0:
+                    self.new_monster=Monster()
+                    string="Monsters/"+str(aux)+".png"
+                    self.new_monster.texture=arcade.load_texture(string)
+                    self.new_monster.posx=j
+                    self.new_monster.posy=i
+                    self.all_monsters.append(self.new_monster)
+                    self.all_sprites_list.insert(0,self.new_monster)
         for i in range(5):
             for j in range(3):
                 self.new_map_sprite=MapObject()
@@ -89,6 +116,15 @@ class MyGame(arcade.Window):
         self.all_sprites_list.draw()
     def on_update(self, delta_time):
         self.all_sprites_list.update()
+        for i in self.all_visible_monsters:
+            self.all_sprites_list.remove(i)
+        self.all_visible_monsters=arcade.SpriteList()
+        for i in self.all_monsters:
+            if abs(i.posx-self.playerxpos)<6 and abs(i.posy-self.playerypos)<6:
+                i.center_x=SCREEN_WIDTH/2-(self.playerxpos-i.posx)*tilesSize
+                i.center_y=SCREEN_HEIGHT/2+(self.playerypos-i.posy)*tilesSize
+                self.all_visible_monsters.append(i)
+                self.all_sprites_list.append(i)
 
 
     def on_key_press(self, key, modifiers):
