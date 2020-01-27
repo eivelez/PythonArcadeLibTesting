@@ -16,13 +16,49 @@ SCREEN_TITLE = "Juego Bacan"
 MOVEMENT_SPEED = 1
 
 
+class Orcs(arcade.Sprite):
+    def __init__(self):
+        super().__init__()
+        texture = arcade.load_texture("orc.png", scale=0.4)
+        self.textures.append(texture)
+        self.set_texture(0)
 
+        self.block=False
+        self.counter=0
+        self.ymov=0
+        self.xmov=0
+
+    def update(self):
+        if self.block==False:
+            if self.change_x<0:
+                self.xmov=-1
+                self.counter=64
+                self.block=True
+            elif self.change_x>0:
+                self.xmov=1
+                self.counter=64
+                self.block=True
+            elif self.change_y>0:
+                self.ymov=1
+                self.counter=64
+                self.block=True
+            elif self.change_y<0:
+                self.ymov=-1
+                self.counter=64
+                self.block=True
+
+        elif self.block==True:
+            self.center_x += self.xmov
+            self.center_y += self.ymov
+            self.counter+=-1
+            if self.counter==0:
+                self.block=False
+                self.xmov=0
+                self.ymov=0
 class Player(arcade.Sprite):
 
     def __init__(self):
         super().__init__()
-        self.mapRealPosX=10
-        self.mapRealPosY=10
         # Load a left facing texture and a right facing texture.
         # mirrored=True will mirror the image we load.
         for i in range(4):
@@ -132,6 +168,7 @@ class MyGame(arcade.Window):
         self.player_sprite = None
         self.things_sprites = None
         self.spell_sprites=None
+        self.orcs_sprite=None
         # Set the background color
         arcade.set_background_color(arcade.color.AMAZON)
 
@@ -142,6 +179,7 @@ class MyGame(arcade.Window):
         self.all_sprites_list = arcade.SpriteList()
         self.all_map =arcade.SpriteList()
         self.spell_sprites=arcade.SpriteList()
+        self.orcs_sprites_List=arcade.SpriteList()
         # Set up the player
         x=0
         y=0
@@ -159,6 +197,12 @@ class MyGame(arcade.Window):
         self.player_sprite.center_x = SCREEN_WIDTH / 2
         self.player_sprite.center_y = SCREEN_HEIGHT / 2
         self.all_sprites_list.append(self.player_sprite)
+        self.orcs_sprite = Orcs()
+        self.orcs_sprite.center_x = SCREEN_WIDTH / 2+128
+        self.orcs_sprite.center_y = SCREEN_HEIGHT / 2+128
+        self.all_sprites_list.append(self.orcs_sprite)
+        self.orcs_sprites_List.append(self.orcs_sprite)
+        self.all_map.append(self.orcs_sprite)
         self.spellActive=0
         self.spellCD=40
 
@@ -200,7 +244,7 @@ class MyGame(arcade.Window):
                 self.things_sprites = MapThings()
                 self.things_sprites.center_x = (SCREEN_WIDTH/2)+listaX[i]*64
                 self.things_sprites.center_y = (SCREEN_HEIGHT/2)+listaY[i]*64
-                self.things_sprites.texture=arcade.load_texture("11299.gif", scale=SPRITE_SCALING)
+                self.things_sprites.texture=arcade.load_texture("hitmark.png", scale=0.1)
                 self.all_sprites_list.insert(len(self.all_sprites_list)-1,self.things_sprites)
                 self.all_map.append(self.things_sprites)
                 self.spell_sprites.append(self.things_sprites)
